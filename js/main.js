@@ -1,23 +1,24 @@
 /**
  * KATHLEEN MCGINN ART — HERO ANIMATION
  *
- * Uses stroke-dashoffset technique for SVG line draws:
- * Each line's dasharray = dashoffset = its full length.
- * Animating dashoffset → 0 draws the line naturally.
- *
  * Sequence:
- *  0.0s  Background atmosphere fades in
- *  0.6s  Apex pin appears
- *  0.8s  Top crossbar extends
- *  1.0s  Center post draws downward  (vertical of the cross)
- *  1.2s  Left + right legs spread from apex
- *  2.1s  Foot caps pop in
- *  2.3s  Lower brace draws across
- *  2.6s  Ledge draws across         (horizontal of the cross)
- *  2.9s  Canvas drops onto ledge + settle
- *  3.2s  Painting wipes up, spotlight brightens
- *  4.8s  Signature rises in
- *  5.6s+ Idle float begins
+ *  0.0s  Gallery background breathes in
+ *  0.6s  Cross vertical arm descends (beam of light)
+ *  2.6s  Cross horizontal arm sweeps across
+ *  3.8s  Cross held — spotlight rests on it
+ *  5.0s  Cross begins to fade — easel emerges from its form
+ *  5.2s  Apex pin materializes at the top of the cross
+ *  5.5s  Top crossbar extends
+ *  5.8s  Center post draws downward through the cross space
+ *  6.1s  Left leg spreads from apex
+ *  6.3s  Right leg spreads from apex
+ *  7.9s  Foot caps settle
+ *  8.2s  Lower brace draws across
+ *  8.7s  Ledge draws across — the resting place
+ *  9.0s  Canvas descends onto the ledge
+ *  9.8s  Painting wipes upward, spotlight brightens
+ * 12.5s  Signature rises in
+ * 13.9s+ Idle float begins
  */
 
 ;(function () {
@@ -57,19 +58,23 @@
     const len = el.getTotalLength();
     el.style.strokeDasharray  = len;
     el.style.strokeDashoffset = len;
-    el.style.opacity = '1';   /* visible, but offset makes it invisible */
+    el.style.opacity = '1';
     return len;
   }
 
   /* ── Main timeline ─────────────────────── */
   function runTimeline () {
-    /* Elements */
     const bg        = document.querySelector('.gallery-bg');
     const spotlight = document.querySelector('.gallery-spotlight');
     const canvasW   = document.querySelector('.canvas-wrapper');
     const sigW      = document.querySelector('.signature-wrapper');
     const revMask   = document.querySelector('.canvas-reveal-mask');
 
+    /* Cross elements */
+    const crossV = document.getElementById('cross-v');
+    const crossH = document.getElementById('cross-h');
+
+    /* Easel elements */
     const apex   = document.getElementById('e-apex');
     const topbar = document.getElementById('e-topbar');
     const legL   = document.getElementById('e-leg-l');
@@ -83,7 +88,9 @@
     const footR  = document.getElementById('e-foot-r');
     const footC  = document.getElementById('e-foot-c');
 
-    /* Measure and set up lines for stroke-draw */
+    /* Set up stroke-draw for all lines */
+    prepLine(crossV);
+    prepLine(crossH);
     prepLine(topbar);
     prepLine(legL);
     prepLine(legR);
@@ -97,114 +104,149 @@
       onComplete: startIdle,
     });
 
-    /* 1 — Gallery background fades in */
+    /* ── 1 — Gallery wall breathes in, warm and slow ── */
     tl.to(bg, {
       opacity: 1,
-      duration: 1.0,
+      duration: 2.8,
       ease: 'power2.inOut',
     }, 0);
 
-    /* 2 — Apex hinge pin materializes */
+    /* ── 2 — CROSS: vertical arm descends like a beam ── */
+    tl.to(crossV, {
+      strokeDashoffset: 0,
+      duration: 2.0,
+      ease: 'power2.inOut',
+    }, 0.6);
+
+    /* ── 3 — CROSS: horizontal arm sweeps left to right ── */
+    tl.to(crossH, {
+      strokeDashoffset: 0,
+      duration: 1.3,
+      ease: 'power2.inOut',
+    }, 2.8);
+
+    /* ── 4 — Spotlight rests gently on the cross ── */
+    tl.to(spotlight, {
+      opacity: 0.50,
+      duration: 1.4,
+      ease: 'power2.inOut',
+    }, 3.5);
+
+    /* ── 5 — TRANSFORMATION: cross fades, easel emerges ── */
+    /* Cross dissolves */
+    tl.to([crossV, crossH], {
+      opacity: 0,
+      duration: 1.8,
+      ease: 'power2.inOut',
+    }, 5.0);
+
+    /* Spotlight dims briefly during the change */
+    tl.to(spotlight, {
+      opacity: 0.12,
+      duration: 1.0,
+      ease: 'power2.inOut',
+    }, 5.0);
+
+    /* Apex pin appears at the top — origin point of the cross */
     tl.to(apex, {
       opacity: 1,
-      scale: 1,
-      duration: 0.32,
-      ease: 'back.out(2)',
-    }, 0.55);
-
-    /* 3 — Top crossbar draws out from center */
-    tl.to(topbar, {
-      strokeDashoffset: 0,
-      duration: 0.38,
-      ease: 'power2.inOut',
-    }, 0.78);
-
-    /* 4 — Center post draws downward  ← VERTICAL of the cross */
-    tl.to(post, {
-      strokeDashoffset: 0,
-      duration: 1.10,
-      ease: 'power2.inOut',
-    }, 1.00);
-
-    /* 5 — Left leg draws from apex downward */
-    tl.to(legL, {
-      strokeDashoffset: 0,
-      duration: 1.05,
-      ease: 'power2.out',
-    }, 1.18);
-
-    /* 6 — Right leg draws from apex downward (slight stagger) */
-    tl.to(legR, {
-      strokeDashoffset: 0,
-      duration: 1.05,
-      ease: 'power2.out',
-    }, 1.28);
-
-    /* 7 — Foot caps pop in */
-    tl.to([footL, footR, footC], {
-      opacity: 1,
-      scale: 1,
-      duration: 0.28,
-      stagger: 0.08,
+      duration: 0.50,
       ease: 'back.out(2)',
       transformOrigin: 'center center',
-    }, 2.10);
+    }, 5.2);
 
-    /* 8 — Lower brace draws across  */
+    /* Top crossbar extends from center */
+    tl.to(topbar, {
+      strokeDashoffset: 0,
+      duration: 0.65,
+      ease: 'power2.inOut',
+    }, 5.6);
+
+    /* Center post draws downward — through the same axis as the cross */
+    tl.to(post, {
+      strokeDashoffset: 0,
+      duration: 2.2,
+      ease: 'power2.inOut',
+    }, 5.9);
+
+    /* Left leg spreads from the apex — slow, deliberate */
+    tl.to(legL, {
+      strokeDashoffset: 0,
+      duration: 2.1,
+      ease: 'power2.out',
+    }, 6.2);
+
+    /* Right leg spreads, slight stagger */
+    tl.to(legR, {
+      strokeDashoffset: 0,
+      duration: 2.1,
+      ease: 'power2.out',
+    }, 6.5);
+
+    /* Foot caps settle at the base */
+    tl.to([footL, footR, footC], {
+      opacity: 1,
+      duration: 0.45,
+      stagger: 0.12,
+      ease: 'back.out(2)',
+      transformOrigin: 'center center',
+    }, 8.0);
+
+    /* Lower brace draws across */
     tl.to(brace, {
       strokeDashoffset: 0,
-      duration: 0.55,
+      duration: 1.0,
       ease: 'power2.inOut',
-    }, 2.26);
+    }, 8.4);
 
-    /* 9 — Ledge rail draws across  ← HORIZONTAL of the cross */
+    /* Ledge rail — the resting place — draws across */
     tl.to(ledge, {
       strokeDashoffset: 0,
-      duration: 0.50,
+      duration: 0.95,
       ease: 'power2.inOut',
-    }, 2.62);
+    }, 9.0);
 
     /* Ledge end caps appear */
     tl.to([capL, capR], {
       opacity: 1,
-      duration: 0.22,
+      duration: 0.35,
       ease: 'power2.out',
-    }, 3.00);
+    }, 9.85);
 
-    /* 10 — Canvas mat descends onto the ledge */
-    gsap.set(canvasW, { opacity: 0, y: -22 });
+    /* ── 6 — Canvas descends onto the ledge ── */
+    gsap.set(canvasW, { opacity: 0, y: -30 });
     tl.to(canvasW, {
       opacity: 1,
       y: 0,
-      duration: 0.78,
+      duration: 1.3,
       ease: 'power3.out',
-    }, 2.90);
+    }, 9.2);
 
-    /* Micro-settle: tiny bounce when it lands */
-    tl.to(canvasW, { y: 4,  duration: 0.16, ease: 'power1.inOut' }, 3.62);
-    tl.to(canvasW, { y: 0,  duration: 0.20, ease: 'power2.out'   }, 3.78);
+    /* Micro-settle: tiny bounce when it lands on the ledge */
+    tl.to(canvasW, { y: 6,  duration: 0.20, ease: 'power1.inOut' }, 10.4);
+    tl.to(canvasW, { y: 0,  duration: 0.28, ease: 'power2.out'   }, 10.6);
 
-    /* 11 — Painting wipes upward from bottom */
+    /* ── 7 — Painting wipes upward, slowly revealed ── */
     tl.to(revMask, {
       clipPath: 'inset(0% 0 0 0)',
-      duration: 1.20,
+      duration: 2.2,
       ease: 'power2.inOut',
-    }, 3.22);
+    }, 9.9);
 
-    /* Spotlight brightens behind the painting */
+    /* Spotlight returns and brightens behind the painting */
     tl.to(spotlight, {
       opacity: 1,
-      duration: 1.50,
+      duration: 2.5,
       ease: 'power2.inOut',
-    }, 3.40);
+    }, 10.2);
 
-    /* 12 — Signature rises in */
+    /* ── 8 — Signature rises in, unhurried ── */
     tl.to(sigW, {
       opacity: 1,
       y: 0,
-      duration: 0.90,
+      duration: 1.6,
       ease: 'power3.out',
-    }, 4.80);
+    }, 12.5);
   }
 
   /* ── Idle state: subtle breathing float ─── */
@@ -213,38 +255,35 @@
     const sigW      = document.querySelector('.signature-wrapper');
     const spotlight = document.querySelector('.gallery-spotlight');
 
-    /* Canvas floats very gently — barely visible, just alive */
     if (canvasW) {
       gsap.to(canvasW, {
         y: -5,
-        duration: 4.8,
+        duration: 5.5,
         ease: 'sine.inOut',
         yoyo: true,
         repeat: -1,
       });
     }
 
-    /* Signature floats in sympathy, slightly delayed */
     if (sigW) {
       gsap.to(sigW, {
         y: -3,
-        duration: 4.8,
+        duration: 5.5,
         ease: 'sine.inOut',
         yoyo: true,
         repeat: -1,
-        delay: 0.5,
+        delay: 0.6,
       });
     }
 
-    /* Spotlight breathes — almost imperceptible */
     if (spotlight) {
       gsap.to(spotlight, {
-        opacity: 0.78,
-        duration: 6.0,
+        opacity: 0.76,
+        duration: 7.0,
         ease: 'sine.inOut',
         yoyo: true,
         repeat: -1,
-        delay: 1.2,
+        delay: 1.5,
       });
     }
   }

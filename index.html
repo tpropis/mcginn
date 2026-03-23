@@ -44,6 +44,29 @@
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
       >
+        <defs>
+          <!-- Soft glow for the cross -->
+          <filter id="cross-glow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        <!-- ── CROSS (shown first, then fades as easel emerges) ── -->
+        <g id="cross-group" filter="url(#cross-glow)">
+          <!-- Vertical arm: top to bottom -->
+          <line id="cross-v"
+            x1="200" y1="82" x2="200" y2="478"
+            stroke="#c8ad8a" stroke-width="4" stroke-linecap="round" opacity="0"/>
+          <!-- Horizontal arm: left to right, ~1/3 down the vertical -->
+          <line id="cross-h"
+            x1="108" y1="208" x2="292" y2="208"
+            stroke="#c8ad8a" stroke-width="4" stroke-linecap="round" opacity="0"/>
+        </g>
+
         <!-- ── Apex hinge pin ── -->
         <circle id="e-apex" cx="200" cy="48" r="5" fill="#9a8b7a" />
 

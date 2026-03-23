@@ -110,6 +110,9 @@ body {
   3. Animate stroke-dashoffset to 0 (draws the line)
   Circles simply fade in.
 */
+#cross-v, #cross-h {
+  opacity: 0;
+}
 #e-leg-l, #e-leg-r, #e-post, #e-ledge, #e-brace, #e-topbar {
   opacity: 0;
 }

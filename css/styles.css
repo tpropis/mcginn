@@ -1,0 +1,337 @@
+/* =============================================
+   KATHLEEN MCGINN ART — HERO STYLES
+   Production-quality, gallery-grade aesthetic
+   ============================================= */
+
+/* ── CSS Custom Properties ─────────────────── */
+:root {
+  /* Palette: warm gallery wall, not stark white */
+  --bg-base:          #f4f0eb;
+  --bg-deep:          #e8e1d8;
+  --accent-warm:      #c8b89a;
+  --accent-dark:      #3a2e24;
+  --easel-metal:      #8a7a6a;
+  --easel-shadow:     rgba(58, 46, 36, 0.18);
+  --canvas-border:    #f9f6f2;
+  --canvas-mat:       #faf8f5;
+  --text-refined:     #5a4e44;
+
+  /* Sizing */
+  --easel-width:      400px;
+  --easel-height:     540px;
+  --canvas-width:     300px;
+  --canvas-height:    376px;  /* ~4:5 ratio for portrait */
+  --canvas-mat-pad:   14px;
+  --signature-width:  220px;
+
+  /* Spacing */
+  --stage-gap:        28px;   /* gap between easel visual center and signature */
+
+  /* Animation timing (seconds) — easy to adjust */
+  --t-bg-fade:        0.6;
+  --t-easel-delay:    0.4;
+  --t-easel-apex:     0.3;
+  --t-legs-spread:    0.9;
+  --t-brace:          0.5;
+  --t-ledge:          0.4;
+  --t-canvas-drop:    0.7;
+  --t-canvas-reveal:  1.1;
+  --t-sig-rise:       0.8;
+  --t-idle-float:     5.0;   /* subtle idle float period */
+}
+
+/* ── Reset & Base ───────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Gallery Background ─────────────────────── */
+.gallery-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 80% 70% at 50% 42%,
+    #f9f6f1 0%,
+    #f0ebe3 40%,
+    #e4ddd3 75%,
+    #d5ccc0 100%
+  );
+}
+
+/* Vignette: darkens edges for museum-wall depth */
+.gallery-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 90% 85% at 50% 45%,
+    transparent 35%,
+    rgba(38, 28, 18, 0.18) 70%,
+    rgba(30, 22, 14, 0.40) 100%
+  );
+  pointer-events: none;
+}
+
+/* Soft spotlight: warm illumination behind the painting */
+.gallery-spotlight {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 55% 50% at 50% 38%,
+    rgba(255, 248, 235, 0.55) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* ── Hero Stage ─────────────────────────────── */
+.hero-stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 40px 20px 60px;
+}
+
+/* ── Easel Assembly Container ───────────────── */
+.easel-assembly {
+  position: relative;
+  width: var(--easel-width);
+  height: var(--easel-height);
+  flex-shrink: 0;
+}
+
+/* ── Easel SVG Frame ────────────────────────── */
+.easel-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  filter: drop-shadow(0 6px 20px rgba(58, 46, 36, 0.20));
+}
+
+.easel-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* All easel parts start invisible — JS will animate them in */
+.easel-leg,
+.easel-brace,
+.easel-ledge,
+.easel-topbar,
+.easel-apex,
+.easel-ledge-cap,
+.easel-foot {
+  opacity: 0;
+}
+
+/* ── Canvas Wrapper (positioned over easel SVG) ─ */
+.canvas-wrapper {
+  position: absolute;
+  /* Position canvas so it sits just above the ledge line in the SVG */
+  top: 98px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: var(--canvas-width);
+  height: var(--canvas-height);
+  z-index: 2;
+  opacity: 0; /* animated in by JS */
+}
+
+/* White mat surround — tasteful canvas presentation */
+.canvas-mat {
+  width: 100%;
+  height: 100%;
+  background: var(--canvas-mat);
+  padding: var(--canvas-mat-pad);
+  box-shadow:
+    0 2px 8px  rgba(58, 46, 36, 0.12),
+    0 8px 32px rgba(58, 46, 36, 0.18),
+    0 20px 60px rgba(30, 22, 14, 0.22),
+    inset 0 0 0 1px rgba(200, 184, 154, 0.30);
+  position: relative;
+}
+
+/* Inner canvas area */
+.canvas-inner {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  background: #1a1410; /* dark fallback while painting loads */
+}
+
+/* Reveal mask: clips painting from bottom to top on reveal */
+.canvas-reveal-mask {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(100% 0 0 0); /* starts fully clipped from bottom */
+  /* clip-path animated by JS */
+}
+
+.painting-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Edge shadow overlay — simulates canvas edge curvature */
+.canvas-shadow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 4px 0  12px rgba(30, 22, 14, 0.10),
+    inset -4px 0 12px rgba(30, 22, 14, 0.10),
+    inset 0 6px  16px rgba(30, 22, 14, 0.08),
+    inset 0 -4px 10px rgba(30, 22, 14, 0.12);
+}
+
+/* ── Signature / Logo ───────────────────────── */
+.signature-wrapper {
+  position: relative;
+  z-index: 3;
+  margin-top: calc(var(--easel-height) * -0.075); /* visually tuck up under easel foot area */
+  opacity: 0;   /* animated in by JS */
+  transform: translateY(12px);
+}
+
+.signature-logo {
+  display: block;
+  width: var(--signature-width);
+  max-width: 90vw;
+  height: auto;
+  /* Make the white/light background of the logo image transparent */
+  mix-blend-mode: multiply;
+  filter: contrast(1.08) brightness(0.92);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ── Optional Tagline ───────────────────────── */
+.hero-tagline {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+  letter-spacing: 0.28em;
+  color: var(--text-refined);
+  opacity: 0;
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+
+/* ── Idle Float Animation (post-reveal) ─────── */
+@keyframes canvasFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0px);   }
+  50%       { transform: translateX(-50%) translateY(-4px);  }
+}
+
+.canvas-wrapper.is-floating {
+  animation: canvasFloat var(--t-idle-float, 5s) ease-in-out infinite;
+}
+
+/* ── Responsive ─────────────────────────────── */
+
+/* Large desktop: give the easel more room */
+@media (min-width: 1200px) {
+  :root {
+    --easel-width:      460px;
+    --easel-height:     620px;
+    --canvas-width:     342px;
+    --canvas-height:    428px;
+    --canvas-mat-pad:   16px;
+    --signature-width:  260px;
+  }
+
+  .canvas-wrapper {
+    top: 112px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  :root {
+    --easel-width:      320px;
+    --easel-height:     432px;
+    --canvas-width:     240px;
+    --canvas-height:    300px;
+    --canvas-mat-pad:   10px;
+    --signature-width:  180px;
+  }
+
+  .canvas-wrapper {
+    top: 78px;
+  }
+
+  .hero-stage {
+    padding: 30px 16px 50px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  :root {
+    --easel-width:      260px;
+    --easel-height:     360px;
+    --canvas-width:     194px;
+    --canvas-height:    242px;
+    --canvas-mat-pad:   8px;
+    --signature-width:  150px;
+  }
+
+  .canvas-wrapper {
+    top: 64px;
+  }
+
+  .hero-stage {
+    padding: 20px 12px 40px;
+  }
+}
+
+/* Short screens (landscape mobile) */
+@media (max-height: 600px) and (orientation: landscape) {
+  :root {
+    --easel-width:      220px;
+    --easel-height:     300px;
+    --canvas-width:     162px;
+    --canvas-height:    204px;
+    --canvas-mat-pad:   7px;
+    --signature-width:  130px;
+  }
+
+  .canvas-wrapper {
+    top: 54px;
+  }
+}
+
+/* ── Accessibility ───────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .canvas-wrapper.is-floating {
+    animation: none;
+  }
+}

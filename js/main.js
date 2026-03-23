@@ -1,282 +1,250 @@
 /**
  * KATHLEEN MCGINN ART — HERO ANIMATION
- * Orchestrated with GSAP for premium gallery-grade reveal
  *
- * Animation sequence:
- *   1. Background atmosphere fades in
- *   2. Easel apex + topbar materialize (top of easel)
- *   3. Legs spread open from apex with staggered, organic timing
- *   4. Cross brace slides in horizontally
- *   5. Ledge rail extends (canvas resting surface)
- *   6. Canvas + mat drops onto ledge with subtle settle
- *   7. Painting reveals from bottom with a gentle wipe
- *   8. Signature logo rises and fades in below
- *   9. Subtle idle float begins (breathing life into the composition)
+ * Uses stroke-dashoffset technique for SVG line draws:
+ * Each line's dasharray = dashoffset = its full length.
+ * Animating dashoffset → 0 draws the line naturally.
+ *
+ * Sequence:
+ *  0.0s  Background atmosphere fades in
+ *  0.6s  Apex pin appears
+ *  0.8s  Top crossbar extends
+ *  1.0s  Center post draws downward  (vertical of the cross)
+ *  1.2s  Left + right legs spread from apex
+ *  2.1s  Foot caps pop in
+ *  2.3s  Lower brace draws across
+ *  2.6s  Ledge draws across         (horizontal of the cross)
+ *  2.9s  Canvas drops onto ledge + settle
+ *  3.2s  Painting wipes up, spotlight brightens
+ *  4.8s  Signature rises in
+ *  5.6s+ Idle float begins
  */
 
 ;(function () {
   'use strict';
 
-  /* ── Guard: wait for DOM ─────────────────── */
   document.addEventListener('DOMContentLoaded', init);
 
   function init () {
-    /* Abort the whole animation if GSAP failed to load */
-    if (typeof gsap === 'undefined') {
-      console.warn('[McGinnHero] GSAP not loaded — showing static state.');
-      showStaticFallback();
-      return;
-    }
-
-    /* Respect prefers-reduced-motion */
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduced) {
-      showStaticFallback();
-      return;
-    }
-
-    buildTimeline();
+    if (typeof gsap === 'undefined') { showFallback(); return; }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { showFallback(); return; }
+    runTimeline();
   }
 
-  /* ── Static fallback (no animation) ────────── */
-  function showStaticFallback () {
-    const els = document.querySelectorAll(
-      '.easel-leg, .easel-brace, .easel-ledge, .easel-topbar, .easel-apex, .easel-ledge-cap, .easel-foot'
-    );
-    els.forEach(el => { el.style.opacity = '1'; });
+  /* ── Instant static reveal (no animation) ─ */
+  function showFallback () {
+    document.querySelectorAll(
+      '#e-leg-l, #e-leg-r, #e-post, #e-ledge, #e-brace, #e-topbar,' +
+      '#e-apex, #e-cap-l, #e-cap-r, #e-foot-l, #e-foot-r, #e-foot-c'
+    ).forEach(el => { el.style.opacity = '1'; });
 
-    const canvasWrapper   = document.querySelector('.canvas-wrapper');
-    const signatureWrapper = document.querySelector('.signature-wrapper');
-    const mask            = document.querySelector('.canvas-reveal-mask');
+    const cw  = document.querySelector('.canvas-wrapper');
+    const sw  = document.querySelector('.signature-wrapper');
+    const rm  = document.querySelector('.canvas-reveal-mask');
+    const bg  = document.querySelector('.gallery-bg');
+    const sl  = document.querySelector('.gallery-spotlight');
 
-    if (canvasWrapper)    { canvasWrapper.style.opacity = '1'; }
-    if (signatureWrapper) { signatureWrapper.style.opacity = '1'; signatureWrapper.style.transform = 'translateY(0)'; }
-    if (mask)             { mask.style.clipPath = 'inset(0% 0 0 0)'; }
+    if (bg)  bg.style.opacity  = '1';
+    if (sl)  sl.style.opacity  = '1';
+    if (cw)  cw.style.opacity  = '1';
+    if (sw)  { sw.style.opacity = '1'; sw.style.transform = 'translateY(0)'; }
+    if (rm)  rm.style.clipPath  = 'inset(0% 0 0 0)';
   }
 
-  /* ── Main timeline ──────────────────────── */
-  function buildTimeline () {
-    /* Selectors */
-    const canvasWrapper   = document.querySelector('.canvas-wrapper');
-    const signatureWrapper = document.querySelector('.signature-wrapper');
-    const revealMask      = document.querySelector('.canvas-reveal-mask');
-    const galleryBg       = document.querySelector('.gallery-bg');
-    const spotlight       = document.querySelector('.gallery-spotlight');
+  /* ── Prepare a line for stroke-draw animation ─ */
+  function prepLine (el) {
+    if (!el) return;
+    const len = el.getTotalLength();
+    el.style.strokeDasharray  = len;
+    el.style.strokeDashoffset = len;
+    el.style.opacity = '1';   /* visible, but offset makes it invisible */
+    return len;
+  }
 
-    /* Easel SVG element references */
-    const apex       = document.querySelector('.easel-apex');
-    const topbar     = document.querySelector('.easel-topbar');
-    const legLeft    = document.querySelector('.easel-leg-left');
-    const legRight   = document.querySelector('.easel-leg-right');
-    const legBack    = document.querySelector('.easel-leg-back');
-    const brace      = document.querySelector('.easel-brace');
-    const ledge      = document.querySelector('.easel-ledge');
-    const ledgeCaps  = document.querySelectorAll('.easel-ledge-cap');
-    const feet       = document.querySelectorAll('.easel-foot');
+  /* ── Main timeline ─────────────────────── */
+  function runTimeline () {
+    /* Elements */
+    const bg        = document.querySelector('.gallery-bg');
+    const spotlight = document.querySelector('.gallery-spotlight');
+    const canvasW   = document.querySelector('.canvas-wrapper');
+    const sigW      = document.querySelector('.signature-wrapper');
+    const revMask   = document.querySelector('.canvas-reveal-mask');
 
-    /* ── Set initial states ───────────────── */
+    const apex   = document.getElementById('e-apex');
+    const topbar = document.getElementById('e-topbar');
+    const legL   = document.getElementById('e-leg-l');
+    const legR   = document.getElementById('e-leg-r');
+    const post   = document.getElementById('e-post');
+    const ledge  = document.getElementById('e-ledge');
+    const brace  = document.getElementById('e-brace');
+    const capL   = document.getElementById('e-cap-l');
+    const capR   = document.getElementById('e-cap-r');
+    const footL  = document.getElementById('e-foot-l');
+    const footR  = document.getElementById('e-foot-r');
+    const footC  = document.getElementById('e-foot-c');
 
-    /* Background starts invisible */
-    gsap.set(galleryBg, { opacity: 0 });
-    gsap.set(spotlight, { opacity: 0 });
+    /* Measure and set up lines for stroke-draw */
+    prepLine(topbar);
+    prepLine(legL);
+    prepLine(legR);
+    prepLine(post);
+    prepLine(ledge);
+    prepLine(brace);
 
-    /* All easel parts: start at origin point (apex) with scale 0 */
-    gsap.set([apex, topbar], { opacity: 0, scale: 0, transformOrigin: 'center center' });
-    gsap.set(ledgeCaps, { opacity: 0, scale: 0 });
-    gsap.set(feet, { opacity: 0, scale: 0 });
-
-    /* Legs: collapse to their top anchor point (the apex at 200,80) */
-    gsap.set(legLeft,  { opacity: 0, scaleY: 0, transformOrigin: '200px 80px' });
-    gsap.set(legRight, { opacity: 0, scaleY: 0, transformOrigin: '200px 80px' });
-    gsap.set(legBack,  { opacity: 0, scaleY: 0, transformOrigin: '200px 90px' });
-
-    /* Brace: collapsed to center */
-    gsap.set(brace, { opacity: 0, scaleX: 0, transformOrigin: '200px 380px' });
-
-    /* Ledge: collapsed to center */
-    gsap.set(ledge, { opacity: 0, scaleX: 0, transformOrigin: '200px 130px' });
-
-    /* Canvas: positioned above, invisible, ready to drop */
-    gsap.set(canvasWrapper, { opacity: 0, y: -20 });
-
-    /* Reveal mask starts fully clipped */
-    if (revealMask) gsap.set(revealMask, { clipPath: 'inset(100% 0 0 0)' });
-
-    /* Signature: positioned below, invisible */
-    gsap.set(signatureWrapper, { opacity: 0, y: 16 });
-
-    /* ── Master timeline ─────────────────── */
+    /* ── Build GSAP timeline ────────────── */
     const tl = gsap.timeline({
-      defaults: {
-        ease: 'power3.out',
-      },
-      onComplete: beginIdleState,
+      defaults: { ease: 'power3.out' },
+      onComplete: startIdle,
     });
 
-    /* 1. Fade in warm gallery atmosphere */
-    tl.to(galleryBg, {
+    /* 1 — Gallery background fades in */
+    tl.to(bg, {
       opacity: 1,
       duration: 1.0,
       ease: 'power2.inOut',
     }, 0);
 
-    /* 2. Apex materializes — the pin at the top of the easel */
+    /* 2 — Apex hinge pin materializes */
     tl.to(apex, {
       opacity: 1,
       scale: 1,
-      duration: 0.35,
-      ease: 'back.out(1.8)',
-    }, 0.5);
-
-    /* 3. Top crossbar extends from apex */
-    tl.to(topbar, {
-      opacity: 1,
-      scale: 1,
-      transformOrigin: 'center center',
-      duration: 0.4,
-      ease: 'power2.out',
-    }, 0.72);
-
-    /* 4. Legs spread open from the apex — staggered, organic */
-    /* Back support first (subtle, behind the others) */
-    tl.to(legBack, {
-      opacity: 0.85,
-      scaleY: 1,
-      duration: 1.0,
-      ease: 'power3.out',
-    }, 0.90);
-
-    /* Front legs splay open with a slight stagger */
-    tl.to(legLeft, {
-      opacity: 1,
-      scaleY: 1,
-      duration: 1.05,
-      ease: 'power3.out',
-    }, 0.96);
-
-    tl.to(legRight, {
-      opacity: 1,
-      scaleY: 1,
-      duration: 1.05,
-      ease: 'power3.out',
-    }, 1.04);
-
-    /* Foot caps settle into place */
-    tl.to(feet, {
-      opacity: 1,
-      scale: 1,
-      duration: 0.3,
-      stagger: 0.07,
+      duration: 0.32,
       ease: 'back.out(2)',
-    }, 1.80);
+    }, 0.55);
 
-    /* 5. Cross brace slides in */
-    tl.to(brace, {
-      opacity: 1,
-      scaleX: 1,
-      duration: 0.55,
+    /* 3 — Top crossbar draws out from center */
+    tl.to(topbar, {
+      strokeDashoffset: 0,
+      duration: 0.38,
+      ease: 'power2.inOut',
+    }, 0.78);
+
+    /* 4 — Center post draws downward  ← VERTICAL of the cross */
+    tl.to(post, {
+      strokeDashoffset: 0,
+      duration: 1.10,
+      ease: 'power2.inOut',
+    }, 1.00);
+
+    /* 5 — Left leg draws from apex downward */
+    tl.to(legL, {
+      strokeDashoffset: 0,
+      duration: 1.05,
       ease: 'power2.out',
-    }, 1.88);
+    }, 1.18);
 
-    /* 6. Ledge rail extends */
-    tl.to(ledge, {
-      opacity: 1,
-      scaleX: 1,
-      duration: 0.45,
+    /* 6 — Right leg draws from apex downward (slight stagger) */
+    tl.to(legR, {
+      strokeDashoffset: 0,
+      duration: 1.05,
       ease: 'power2.out',
-    }, 2.20);
+    }, 1.28);
 
-    tl.to(ledgeCaps, {
+    /* 7 — Foot caps pop in */
+    tl.to([footL, footR, footC], {
       opacity: 1,
       scale: 1,
-      duration: 0.25,
+      duration: 0.28,
       stagger: 0.08,
       ease: 'back.out(2)',
-    }, 2.52);
+      transformOrigin: 'center center',
+    }, 2.10);
 
-    /* 7. Canvas descends onto the ledge */
-    tl.to(canvasWrapper, {
+    /* 8 — Lower brace draws across  */
+    tl.to(brace, {
+      strokeDashoffset: 0,
+      duration: 0.55,
+      ease: 'power2.inOut',
+    }, 2.26);
+
+    /* 9 — Ledge rail draws across  ← HORIZONTAL of the cross */
+    tl.to(ledge, {
+      strokeDashoffset: 0,
+      duration: 0.50,
+      ease: 'power2.inOut',
+    }, 2.62);
+
+    /* Ledge end caps appear */
+    tl.to([capL, capR], {
       opacity: 1,
-      y: 0,
-      duration: 0.80,
-      ease: 'power3.out',
-    }, 2.70);
-
-    /* Subtle settle bounce at the end of the drop */
-    tl.to(canvasWrapper, {
-      y: 3,
-      duration: 0.18,
-      ease: 'power1.inOut',
-    }, 3.46);
-    tl.to(canvasWrapper, {
-      y: 0,
       duration: 0.22,
       ease: 'power2.out',
-    }, 3.64);
+    }, 3.00);
 
-    /* 8. Painting reveals upward (wipe from bottom) */
-    tl.to(revealMask, {
+    /* 10 — Canvas mat descends onto the ledge */
+    gsap.set(canvasW, { opacity: 0, y: -22 });
+    tl.to(canvasW, {
+      opacity: 1,
+      y: 0,
+      duration: 0.78,
+      ease: 'power3.out',
+    }, 2.90);
+
+    /* Micro-settle: tiny bounce when it lands */
+    tl.to(canvasW, { y: 4,  duration: 0.16, ease: 'power1.inOut' }, 3.62);
+    tl.to(canvasW, { y: 0,  duration: 0.20, ease: 'power2.out'   }, 3.78);
+
+    /* 11 — Painting wipes upward from bottom */
+    tl.to(revMask, {
       clipPath: 'inset(0% 0 0 0)',
       duration: 1.20,
       ease: 'power2.inOut',
-    }, 3.30);
+    }, 3.22);
 
-    /* 9. Spotlight brightens as painting emerges */
+    /* Spotlight brightens behind the painting */
     tl.to(spotlight, {
       opacity: 1,
-      duration: 1.4,
+      duration: 1.50,
       ease: 'power2.inOut',
-    }, 3.50);
+    }, 3.40);
 
-    /* 10. Signature rises and fades in */
-    tl.to(signatureWrapper, {
+    /* 12 — Signature rises in */
+    tl.to(sigW, {
       opacity: 1,
       y: 0,
       duration: 0.90,
       ease: 'power3.out',
     }, 4.80);
-
-    /* ── END of main sequence ─────────────── */
   }
 
-  /* ── Idle float after reveal ─────────────── */
-  function beginIdleState () {
-    const canvasWrapper    = document.querySelector('.canvas-wrapper');
-    const signatureWrapper = document.querySelector('.signature-wrapper');
-    const spotlight        = document.querySelector('.gallery-spotlight');
+  /* ── Idle state: subtle breathing float ─── */
+  function startIdle () {
+    const canvasW   = document.querySelector('.canvas-wrapper');
+    const sigW      = document.querySelector('.signature-wrapper');
+    const spotlight = document.querySelector('.gallery-spotlight');
 
-    /* Very subtle floating — barely perceptible, just alive */
-    if (canvasWrapper) {
-      gsap.to(canvasWrapper, {
+    /* Canvas floats very gently — barely visible, just alive */
+    if (canvasW) {
+      gsap.to(canvasW, {
         y: -5,
-        duration: 4.5,
+        duration: 4.8,
         ease: 'sine.inOut',
         yoyo: true,
         repeat: -1,
       });
     }
 
-    /* Signature floats in sync but lagged slightly for natural feel */
-    if (signatureWrapper) {
-      gsap.to(signatureWrapper, {
+    /* Signature floats in sympathy, slightly delayed */
+    if (sigW) {
+      gsap.to(sigW, {
         y: -3,
-        duration: 4.5,
+        duration: 4.8,
         ease: 'sine.inOut',
         yoyo: true,
         repeat: -1,
-        delay: 0.4,
+        delay: 0.5,
       });
     }
 
-    /* Spotlight breathes very subtly */
+    /* Spotlight breathes — almost imperceptible */
     if (spotlight) {
       gsap.to(spotlight, {
-        opacity: 0.82,
-        duration: 5.5,
+        opacity: 0.78,
+        duration: 6.0,
         ease: 'sine.inOut',
         yoyo: true,
         repeat: -1,
-        delay: 1.0,
+        delay: 1.2,
       });
     }
   }

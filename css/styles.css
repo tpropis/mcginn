@@ -1,105 +1,78 @@
 /* =============================================
    KATHLEEN MCGINN ART — HERO STYLES
-   Production-quality, gallery-grade aesthetic
    ============================================= */
 
-/* ── CSS Custom Properties ─────────────────── */
+/* ── CSS variables — tweak these easily ─── */
 :root {
-  /* Palette: warm gallery wall, not stark white */
-  --bg-base:          #f4f0eb;
-  --bg-deep:          #e8e1d8;
-  --accent-warm:      #c8b89a;
-  --accent-dark:      #3a2e24;
-  --easel-metal:      #8a7a6a;
-  --easel-shadow:     rgba(58, 46, 36, 0.18);
-  --canvas-border:    #f9f6f2;
-  --canvas-mat:       #faf8f5;
-  --text-refined:     #5a4e44;
+  --bg-base:         #f4f0eb;
+  --easel-color:     #9a8b7a;
+  --canvas-mat:      #fafaf8;
 
-  /* Sizing */
-  --easel-width:      400px;
-  --easel-height:     540px;
-  --canvas-width:     300px;
-  --canvas-height:    376px;  /* ~4:5 ratio for portrait */
-  --canvas-mat-pad:   14px;
-  --signature-width:  220px;
+  /* Easel SVG display size */
+  --easel-w:         380px;
+  --easel-h:         532px;
 
-  /* Spacing */
-  --stage-gap:        28px;   /* gap between easel visual center and signature */
+  /* Canvas sits on the ledge — top offset from easel top */
+  /* Ledge is at SVG y=118 out of 560 total → 118/560 = 21.07% */
+  --canvas-top:      calc(var(--easel-h) * 0.2107);
 
-  /* Animation timing (seconds) — easy to adjust */
-  --t-bg-fade:        0.6;
-  --t-easel-delay:    0.4;
-  --t-easel-apex:     0.3;
-  --t-legs-spread:    0.9;
-  --t-brace:          0.5;
-  --t-ledge:          0.4;
-  --t-canvas-drop:    0.7;
-  --t-canvas-reveal:  1.1;
-  --t-sig-rise:       0.8;
-  --t-idle-float:     5.0;   /* subtle idle float period */
+  /* Canvas dimensions */
+  --canvas-w:        260px;
+  --canvas-h:        325px;    /* ~4:5 portrait ratio */
+  --mat-pad:         12px;
+
+  /* Signature */
+  --sig-w:           210px;
 }
 
-/* ── Reset & Base ───────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
+/* ── Reset ──────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
 body {
   font-family: 'Cormorant Garamond', Georgia, serif;
   background: var(--bg-base);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Gallery Background ─────────────────────── */
+/* ── Gallery background ─────────────────── */
 .gallery-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
+  /* Warm gallery wall — soft radial, not stark */
   background: radial-gradient(
-    ellipse 80% 70% at 50% 42%,
-    #f9f6f1 0%,
-    #f0ebe3 40%,
-    #e4ddd3 75%,
-    #d5ccc0 100%
+    ellipse 85% 75% at 50% 40%,
+    #faf7f2 0%,
+    #f2ece3 45%,
+    #e5ddd2 75%,
+    #d8cfc3 100%
   );
+  opacity: 0; /* faded in by JS */
 }
 
-/* Vignette: darkens edges for museum-wall depth */
 .gallery-vignette {
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    ellipse 90% 85% at 50% 45%,
-    transparent 35%,
-    rgba(38, 28, 18, 0.18) 70%,
-    rgba(30, 22, 14, 0.40) 100%
+    ellipse 90% 85% at 50% 44%,
+    transparent 30%,
+    rgba(36, 26, 16, 0.16) 68%,
+    rgba(26, 18, 10, 0.38) 100%
   );
-  pointer-events: none;
 }
 
-/* Soft spotlight: warm illumination behind the painting */
 .gallery-spotlight {
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    ellipse 55% 50% at 50% 38%,
-    rgba(255, 248, 235, 0.55) 0%,
-    transparent 70%
+    ellipse 52% 48% at 50% 36%,
+    rgba(255, 250, 238, 0.60) 0%,
+    transparent 68%
   );
-  pointer-events: none;
+  opacity: 0; /* faded in by JS */
 }
 
-/* ── Hero Stage ─────────────────────────────── */
+/* ── Hero stage ─────────────────────────── */
 .hero-stage {
   position: relative;
   z-index: 1;
@@ -109,84 +82,80 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  padding: 40px 20px 60px;
+  padding: 40px 20px 56px;
 }
 
-/* ── Easel Assembly Container ───────────────── */
+/* ── Easel assembly container ───────────── */
 .easel-assembly {
   position: relative;
-  width: var(--easel-width);
-  height: var(--easel-height);
+  width: var(--easel-w);
+  height: var(--easel-h);
   flex-shrink: 0;
 }
 
-/* ── Easel SVG Frame ────────────────────────── */
-.easel-frame {
+/* ── SVG easel ──────────────────────────── */
+.easel-svg {
   position: absolute;
   inset: 0;
-  z-index: 1;
-  filter: drop-shadow(0 6px 20px rgba(58, 46, 36, 0.20));
-}
-
-.easel-svg {
   width: 100%;
   height: 100%;
+  /* Soft metal shadow */
+  filter: drop-shadow(0 8px 24px rgba(40, 28, 18, 0.20));
 }
 
-/* All easel parts start invisible — JS will animate them in */
-.easel-leg,
-.easel-brace,
-.easel-ledge,
-.easel-topbar,
-.easel-apex,
-.easel-ledge-cap,
-.easel-foot {
+/*
+  All lines start invisible — JS will:
+  1. Measure each line's total length via getTotalLength()
+  2. Set stroke-dasharray = stroke-dashoffset = that length
+  3. Animate stroke-dashoffset to 0 (draws the line)
+  Circles simply fade in.
+*/
+#e-leg-l, #e-leg-r, #e-post, #e-ledge, #e-brace, #e-topbar {
+  opacity: 0;
+}
+#e-apex, #e-cap-l, #e-cap-r, #e-foot-l, #e-foot-r, #e-foot-c {
   opacity: 0;
 }
 
-/* ── Canvas Wrapper (positioned over easel SVG) ─ */
+/* ── Canvas wrapper ─────────────────────── */
 .canvas-wrapper {
   position: absolute;
-  /* Position canvas so it sits just above the ledge line in the SVG */
-  top: 98px;
+  top: var(--canvas-top);
   left: 50%;
   transform: translateX(-50%);
-  width: var(--canvas-width);
-  height: var(--canvas-height);
+  width: var(--canvas-w);
+  height: var(--canvas-h);
   z-index: 2;
-  opacity: 0; /* animated in by JS */
+  opacity: 0;         /* JS fades in */
 }
 
-/* White mat surround — tasteful canvas presentation */
+/* White mat surround */
 .canvas-mat {
   width: 100%;
   height: 100%;
   background: var(--canvas-mat);
-  padding: var(--canvas-mat-pad);
+  padding: var(--mat-pad);
   box-shadow:
-    0 2px 8px  rgba(58, 46, 36, 0.12),
-    0 8px 32px rgba(58, 46, 36, 0.18),
-    0 20px 60px rgba(30, 22, 14, 0.22),
-    inset 0 0 0 1px rgba(200, 184, 154, 0.30);
+    0 2px 6px   rgba(40, 28, 18, 0.10),
+    0 8px 28px  rgba(40, 28, 18, 0.18),
+    0 24px 64px rgba(20, 12, 6, 0.22),
+    inset 0 0 0 1px rgba(180, 164, 140, 0.28);
   position: relative;
 }
 
-/* Inner canvas area */
 .canvas-inner {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  background: #18120e;   /* dark fallback */
   position: relative;
-  background: #1a1410; /* dark fallback while painting loads */
 }
 
-/* Reveal mask: clips painting from bottom to top on reveal */
+/* Reveal mask — clip-path animated by JS */
 .canvas-reveal-mask {
   position: absolute;
   inset: 0;
-  clip-path: inset(100% 0 0 0); /* starts fully clipped from bottom */
-  /* clip-path animated by JS */
+  clip-path: inset(100% 0 0 0);   /* fully hidden initially */
 }
 
 .painting-image {
@@ -199,139 +168,97 @@ body {
   -webkit-user-drag: none;
 }
 
-/* Edge shadow overlay — simulates canvas edge curvature */
-.canvas-shadow {
+/* Inset edge shadow — simulates canvas curvature / depth */
+.canvas-edge {
   position: absolute;
   inset: 0;
   pointer-events: none;
   box-shadow:
-    inset 4px 0  12px rgba(30, 22, 14, 0.10),
-    inset -4px 0 12px rgba(30, 22, 14, 0.10),
-    inset 0 6px  16px rgba(30, 22, 14, 0.08),
-    inset 0 -4px 10px rgba(30, 22, 14, 0.12);
+    inset 5px 0  14px rgba(20, 12, 6, 0.10),
+    inset -5px 0 14px rgba(20, 12, 6, 0.10),
+    inset 0 8px  18px rgba(20, 12, 6, 0.08),
+    inset 0 -5px 12px rgba(20, 12, 6, 0.12);
 }
 
-/* ── Signature / Logo ───────────────────────── */
+/* ── Signature ──────────────────────────── */
 .signature-wrapper {
   position: relative;
   z-index: 3;
-  margin-top: calc(var(--easel-height) * -0.075); /* visually tuck up under easel foot area */
-  opacity: 0;   /* animated in by JS */
-  transform: translateY(12px);
+  /* Pull up slightly so it sits comfortably below the easel */
+  margin-top: -18px;
+  opacity: 0;
+  transform: translateY(14px);   /* JS animates to 0 */
 }
 
 .signature-logo {
   display: block;
-  width: var(--signature-width);
-  max-width: 90vw;
+  width: var(--sig-w);
+  max-width: 88vw;
   height: auto;
-  /* Make the white/light background of the logo image transparent */
+  /* Blend white background away on the warm gallery wall */
   mix-blend-mode: multiply;
-  filter: contrast(1.08) brightness(0.92);
+  filter: contrast(1.10) brightness(0.88);
   user-select: none;
   -webkit-user-drag: none;
 }
 
-/* ── Optional Tagline ───────────────────────── */
-.hero-tagline {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-weight: 300;
-  font-style: italic;
-  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
-  letter-spacing: 0.28em;
-  color: var(--text-refined);
-  opacity: 0;
-  text-transform: uppercase;
-  margin-top: 10px;
+/* ── Idle float (added by JS after reveal) ── */
+@keyframes floatCanvas {
+  0%, 100% { transform: translateX(-50%) translateY(0);   }
+  50%       { transform: translateX(-50%) translateY(-5px); }
+}
+.canvas-wrapper.floating {
+  animation: floatCanvas 5s ease-in-out infinite;
 }
 
-/* ── Idle Float Animation (post-reveal) ─────── */
-@keyframes canvasFloat {
-  0%, 100% { transform: translateX(-50%) translateY(0px);   }
-  50%       { transform: translateX(-50%) translateY(-4px);  }
-}
-
-.canvas-wrapper.is-floating {
-  animation: canvasFloat var(--t-idle-float, 5s) ease-in-out infinite;
-}
-
-/* ── Responsive ─────────────────────────────── */
-
-/* Large desktop: give the easel more room */
-@media (min-width: 1200px) {
+/* ── Responsive ─────────────────────────── */
+@media (min-width: 1280px) {
   :root {
-    --easel-width:      460px;
-    --easel-height:     620px;
-    --canvas-width:     342px;
-    --canvas-height:    428px;
-    --canvas-mat-pad:   16px;
-    --signature-width:  260px;
-  }
-
-  .canvas-wrapper {
-    top: 112px;
+    --easel-w:    440px;
+    --easel-h:    616px;
+    --canvas-w:   300px;
+    --canvas-h:   375px;
+    --sig-w:      250px;
   }
 }
 
-/* Tablet */
-@media (max-width: 768px) {
+@media (max-width: 700px) {
   :root {
-    --easel-width:      320px;
-    --easel-height:     432px;
-    --canvas-width:     240px;
-    --canvas-height:    300px;
-    --canvas-mat-pad:   10px;
-    --signature-width:  180px;
+    --easel-w:    300px;
+    --easel-h:    420px;
+    --canvas-w:   206px;
+    --canvas-h:   258px;
+    --mat-pad:    9px;
+    --sig-w:      170px;
   }
-
-  .canvas-wrapper {
-    top: 78px;
-  }
-
-  .hero-stage {
-    padding: 30px 16px 50px;
-  }
+  .hero-stage { padding: 28px 16px 48px; }
+  .signature-wrapper { margin-top: -12px; }
 }
 
-/* Mobile */
-@media (max-width: 480px) {
+@media (max-width: 420px) {
   :root {
-    --easel-width:      260px;
-    --easel-height:     360px;
-    --canvas-width:     194px;
-    --canvas-height:    242px;
-    --canvas-mat-pad:   8px;
-    --signature-width:  150px;
+    --easel-w:    250px;
+    --easel-h:    350px;
+    --canvas-w:   172px;
+    --canvas-h:   215px;
+    --mat-pad:    7px;
+    --sig-w:      145px;
   }
-
-  .canvas-wrapper {
-    top: 64px;
-  }
-
-  .hero-stage {
-    padding: 20px 12px 40px;
-  }
+  .hero-stage { padding: 20px 12px 40px; }
 }
 
-/* Short screens (landscape mobile) */
-@media (max-height: 600px) and (orientation: landscape) {
+@media (max-height: 580px) and (orientation: landscape) {
   :root {
-    --easel-width:      220px;
-    --easel-height:     300px;
-    --canvas-width:     162px;
-    --canvas-height:    204px;
-    --canvas-mat-pad:   7px;
-    --signature-width:  130px;
-  }
-
-  .canvas-wrapper {
-    top: 54px;
+    --easel-w:    210px;
+    --easel-h:    294px;
+    --canvas-w:   144px;
+    --canvas-h:   180px;
+    --mat-pad:    6px;
+    --sig-w:      120px;
   }
 }
 
-/* ── Accessibility ───────────────────────────── */
+/* ── Reduced motion ─────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .canvas-wrapper.is-floating {
-    animation: none;
-  }
+  .canvas-wrapper.floating { animation: none; }
 }
